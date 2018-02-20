@@ -29,10 +29,11 @@
 #define LED_3 (1 << PF3)
 
 
-void doOff();
-void doRotate();
-void doFlash();
+char doOff();
+char doRotate();
+char doFlash();
 void init_ports(void);
+char sample_buttons(char curr_state, int ms);
 
 
 
