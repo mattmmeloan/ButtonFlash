@@ -11,25 +11,29 @@
 
 void doOff() {
 	//all lights off
-	
+	PORTF &= 0xF0;
 }
 
 void doRotate() {
 	//all lights off
-	
-	
-	//repeat for each light {
-	//	light on
-	//	delay 100
-	//	light off
-	//}
+	PORTF &= 0xF0;
+
+	// turn each light on in succession
+	for (char led = PF0; led < PF4; led++) {
+		PORTF |= (1 << led);	// turn on current LED
+		_delay_ms(1000);
+		PORTF &= ~(1 << led);	// turn off current LED
+	}
 }
 
 void doFlash() {
-	// all on
-	// delay 200
-	// all off 
-	// delay 1000
+	for (int i = 0; i < 4; i++) {
+		PORTF |= 0x40;	// turn on every LED
+		_delay_ms(200);
+		
+		PORTF &= 0x40;	// turn off every LED
+		_delay_ms(1000);
+	}
 }
 
 void init_ports(void) {
