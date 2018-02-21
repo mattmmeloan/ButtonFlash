@@ -75,32 +75,24 @@ void init_ports(void) {
 }
 
 char sample_buttons(char curr_state, int ms) {
-	char b0_state, b1_state, pushed_pin;
-	int pushed_button, delayed = 0;
-	
-	// wait until a button is pushed or the specified number of ms elapses
-	while ((b0_state = PINF & B0_PIN) && (b1_state = PINF & B1_PIN)) {
-		delayed++;
-		_delay_ms(1);
-		if (delayed == ms) return curr_state;
-	}
-	
-	// get pin for button that was pushed
-	if (!b0_state) {
-		pushed_pin = B0_PIN;
-		pushed_button = B0;
-	}
-	else {
-		pushed_pin = B1_PIN;
-		pushed_button = B1;
-	}
-	
-	// delay until button is released
-	do {
+	static int b0 = 1, b1 = 1;
+	int old_b0, old_b1, delayed = 0;
+
+	// delay 4ms before sampling buttons
+	while (delayed < ms) {
+		old_b0 = b0;
+		old_b1 = b1;
 		_delay_ms(4);
 		delayed += 4;
-		if (delayed >= ms) return curr_state;
-	} while (!(PINF & pushed_pin));
-	
-	return state_table[(int) curr_state][pushed_button];
+		b0 = (PINF & B0_PIN) >> PF6;
+		b1 = (PINF & B1_PIN) >> PF7;
+		
+		// change state
+		if ((old_b0 == 0) && (b0 == 1))
+			return state_table[(int) curr_state][B0];
+		if ((old_b1 == 0) && (b1 == 1))
+			return state_table[(int) curr_state][B1];
+	}
+
+	return curr_state;
 }

@@ -22,12 +22,6 @@
 #define B0_PIN (1 << PF6)
 #define B1_PIN (1 << PF7)
 
-/* pin masks for LEDs 0 through 3 */
-#define LED_0 (1 << PF0)
-#define LED_1 (1 << PF1)
-#define LED_2 (1 << PF2)
-#define LED_3 (1 << PF3)
-
 
 char doOff();
 char doRotate();
