@@ -19,8 +19,8 @@
 #define B1 	1
 
 /* pin masks for button 0 and button 1 */
-#define B0_PIN (1 << PF6)
-#define B1_PIN (1 << PF7)
+#define B0_PIN (1 << PK0)
+#define B1_PIN (1 << PK1)
 
 
 char doOff();

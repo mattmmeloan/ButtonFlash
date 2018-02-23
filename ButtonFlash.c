@@ -5,8 +5,10 @@
  *  Author: meloanmm
  */ 
 
-#include <util/delay.h>
 #include <avr/io.h>
+#include <util/delay.h>
+#include <avr/interrupt.h>
+#include <util/atomic.h>
 #include "ButtonFlash.h"
 
 /* state transition table - state_table[i][j] is the
@@ -17,6 +19,9 @@ unsigned char state_table[3][2] = {
 	{ OFF,		FLASH },    // ROTATE state
 	{ ROTATE,	OFF   }     // FLASH state
 };
+
+volatile int button0pressed;
+volatile int button1pressed;
 
 char doOff() {
 	char state;
@@ -67,35 +72,58 @@ char doFlash() {
 
 void init_ports(void) {
 	// configure button pins for input with pull-up enabled
-	DDRF &= 0x3F;
-	PORTF |= 0xC0;
+	DDRK &= 0xFC;
+	PORTK |= 0x03;
+	
+	// enable interrupts
+	sei();
+	
+	// enable interrupts for pins A8 and A9
+	PCICR |= 0x04;
+	PCMSK2 |= 0x03;
 	
 	// configure led output pins
 	DDRF |= 0x0F;
 }
 
 char sample_buttons(char curr_state, int ms) {
-	static int b0 = 1;
-	static int b1 = 1;
-	int old_b0, old_b1, delayed = 0;
+	int delayed = 0;
 
-	// delay 4ms before sampling buttons
 	while (delayed < ms) {
-		old_b0 = b0;
-		old_b1 = b1;
-		
-		_delay_ms(4);
-		delayed += 4;
-		
-		b0 = PINF & B0_PIN;
-		b1 = PINF & B1_PIN;
-		
 		// change state if button has been released
-		if (!old_b0 && b0)
+		if (button0pressed) {
+			button0pressed = 0;
 			return state_table[(int) curr_state][B0];
-		if (!old_b1 && b1)
+		}
+		if (button1pressed) {
+			button1pressed = 0;
 			return state_table[(int) curr_state][B1];
+		}
+		
+		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+			_delay_ms(4);
+			delayed += 4;	
+		}
 	}
 
 	return curr_state;
 }
+
+
+ISR (PCINT2_vect) {
+	static char b0 = 1;
+	static char b1 = 1;
+	
+	char old_b0 = b0;
+	char old_b1 = b1;
+	
+	b0 = PINK & B0_PIN;
+	b1 = PINK & B1_PIN;
+	
+	// change state if button has been released
+	if (!old_b0 && b0)
+		button0pressed = 1;
+	if (!old_b1 && b1)
+		button1pressed = 1;
+}
+

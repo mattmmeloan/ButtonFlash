@@ -7,15 +7,12 @@
  * Author : meloanmm
  */ 
 
-#include <avr/io.h>
-#include <util/delay.h>
 #include "ButtonFlash.h"
-
 
 int main(void)
 {
 	init_ports();
-	unsigned char light_state = OFF;
+	char light_state = OFF;
 		
 	while (1)
 	{	
@@ -34,4 +31,3 @@ int main(void)
 		}
 	}
 }
-
